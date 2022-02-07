@@ -2,33 +2,24 @@ const { v4: uuidv4 } = require("uuid");
 const { validationResult } = require("express-validator");
 
 const HttpError = require("../models/http-error");
+const User = require("../models/user");
 
-const DUMMY_USERS = [
-  {
-    id: "u1",
-    name: "Alex johnson",
-    email: "a@test.com",
-    password: "testtest",
-    image:
-      "https://photo-cdn2.icons8.com/99L3mO3yHI4fFvBl_QpK3x38RVKTTyGUAzVrtiF8GtM/rs:fit:715:1072/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNzIvNTI0Nzg4/MjctMzViMy00Y2Q2/LWJjM2YtNTMwYmZk/YmVkZTM4LmpwZw.jpg",
-    places: "3",
-  },
-  {
-    id: "u2",
-    name: "emily michigan",
-    email: "e@test.com",
-    password: "testtest",
-    image:
-      "https://photo-cdn2.icons8.com/XGYUDcGGnHuzyR3eaNeLAa5LQfpo_JdwnKYGaIwbjP8/rs:fit:804:1072/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNzY5LzhiMTYy/NDU3LTkxN2UtNDVm/Ni1iYjhjLTE2YmQy/MmYyODU1Zi5qcGc.jpg",
-    places: "4",
-  },
-];
+/* -------------------------------- getUsers -------------------------------- */
+const getUsers = async (req, res, next) => {
+  let users;
 
-const getUsers = (req, res, next) => {
-  res.json({ users: DUMMY_USERS });
+  try {
+    users = await User.find({}, "-password");
+  } catch (error) {
+    return next(new HttpError("fetching users failed", 500));
+  }
+
+  res.json({ users: users.map((u) => u.toObject({ getters: true })) });
 };
+/* -------------------------------------------------------------------------- */
 
-const signup = (req, res, next) => {
+/* --------------------------------- signup --------------------------------- */
+const signup = async (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -37,33 +28,57 @@ const signup = (req, res, next) => {
 
   const { name, email, password } = req.body;
 
-  const hasUser = DUMMY_USERS.find((u) => u.email === email);
-  if (hasUser) {
+  let existingUser;
+
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch (error) {
+    return next(new HttpError("Email already exists", 500));
+  }
+
+  if (existingUser) {
     return next(new HttpError("Email already exists", 422));
   }
 
-  const createdUser = {
-    id: uuidv4(),
+  const createdUser = new User({
     name,
     email,
+    image:
+      "https://www.kindpng.com/picc/m/24-248253_user-profile-default-image-png-clipart-png-download.png",
     password,
-  };
+    places: [],
+  });
 
-  DUMMY_USERS.push(createdUser);
+  try {
+    await createdUser.save();
+  } catch (error) {
+    console.log(error);
+    return next(new HttpError("signup failed", 500));
+  }
 
-  res.status(201).json({ user: createdUser });
+  res.status(201).json({ user: createdUser.toObject({ getters: true }) });
 };
+/* -------------------------------------------------------------------------- */
 
-const login = (req, res, next) => {
+/* ---------------------------------- login --------------------------------- */
+const login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  const identifiedUser = DUMMY_USERS.find((u) => u.email === email);
-  if (!identifiedUser || identifiedUser.password !== password) {
-    return next(new HttpError("wrong username or password", 401));
+  let existingUser;
+
+  try {
+    existingUser = await User.findOne({ email: email });
+  } catch (error) {
+    return next(new HttpError("loginig in failed", 500));
+  }
+
+  if (!existingUser || existingUser.password !== password) {
+    return next(new HttpError("loginig in failed", 500));
   }
 
   res.json({ message: "logedin" });
 };
+/* -------------------------------------------------------------------------- */
 
 exports.getUsers = getUsers;
 exports.signup = signup;
