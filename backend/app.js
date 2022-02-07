@@ -1,5 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 const HttpError = require("./models/http-error");
 
@@ -26,4 +27,15 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || "unknown error" });
 });
 
-app.listen(5000);
+mongoose
+  .connect("mongodb://localhost:27017/Locations", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    family: 4,
+  })
+  .then(() => {
+    app.listen(5000);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
