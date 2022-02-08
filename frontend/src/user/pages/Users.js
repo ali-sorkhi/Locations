@@ -1,25 +1,47 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import UserList from "../components/UsersList";
+import ErrorModal from "../../shared/components/UIElements/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 
 const Users = () => {
-  const USERS = [
-    {
-      id: "u1",
-      name: "Alex johnson",
-      image:
-        "https://photo-cdn2.icons8.com/99L3mO3yHI4fFvBl_QpK3x38RVKTTyGUAzVrtiF8GtM/rs:fit:715:1072/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNzIvNTI0Nzg4/MjctMzViMy00Y2Q2/LWJjM2YtNTMwYmZk/YmVkZTM4LmpwZw.jpg",
-      places: "3",
-    },
-    {
-      id: "u2",
-      name: "emily michigan",
-      image:
-        "https://photo-cdn2.icons8.com/XGYUDcGGnHuzyR3eaNeLAa5LQfpo_JdwnKYGaIwbjP8/rs:fit:804:1072/czM6Ly9pY29uczgu/bW9vc2UtcHJvZC5h/c3NldHMvYXNzZXRz/L3NhdGEvb3JpZ2lu/YWwvNzY5LzhiMTYy/NDU3LTkxN2UtNDVm/Ni1iYjhjLTE2YmQy/MmYyODU1Zi5qcGc.jpg",
-      places: "4",
-    },
-  ];
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
+  const [loadedUsers, setLoadedUsers] = useState();
 
-  return <UserList items={USERS} />;
+  useEffect(() => {
+    const sendRequest = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:5000/api/users");
+        const responseData = await response.json();
+        if (!response.ok) {
+          throw new Error(responseData.message);
+        }
+        setLoadedUsers(responseData.users);
+      } catch (error) {
+        setError(error.message);
+      }
+      setIsLoading(false);
+    };
+    sendRequest();
+  }, []);
+
+  const errorHandler = () => {
+    setError(null);
+  };
+
+  return (
+    <React.Fragment>
+      <ErrorModal error={error} onClear={errorHandler} />
+      {isLoading && (
+        <div className="center">
+          <LoadingSpinner asOverlay />
+        </div>
+      )}
+
+      {!isLoading && loadedUsers && <UserList items={loadedUsers} />}
+    </React.Fragment>
+  );
 };
 
 export default Users;
