@@ -17,6 +17,7 @@ import "./PlaceForm.css";
 const NewPlace = () => {
   const auth = useContext(AuthContext);
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  const navigate = useNavigate();
 
   const [formState, inputHandler] = useForm(
     {
@@ -35,8 +36,6 @@ const NewPlace = () => {
     },
     false
   );
-
-  const navigate = useNavigate();
 
   const placeSubmitHandler = async (event) => {
     event.preventDefault();
