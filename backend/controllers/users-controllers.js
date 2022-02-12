@@ -76,7 +76,10 @@ const login = async (req, res, next) => {
     return next(new HttpError("loginig in failed", 500));
   }
 
-  res.json({ message: "logedin" });
+  res.json({
+    message: "logedin",
+    user: existingUser.toObject({ getters: true }),
+  });
 };
 /* -------------------------------------------------------------------------- */
 
