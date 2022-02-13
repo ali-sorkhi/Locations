@@ -1,11 +1,8 @@
-const { v4: uuidv4 } = require("uuid");
+const fs = require("fs");
 const { validationResult } = require("express-validator");
-const mongoose = require("mongoose");
-
 const HttpError = require("../models/http-error");
 const Place = require("../models/place");
 const User = require("../models/user");
-const mongooseUniqueValidator = require("mongoose-unique-validator");
 
 /* ------------------------------ getPlaceById ------------------------------ */
 const getPlaceById = async (req, res, next) => {
@@ -72,8 +69,7 @@ const createPlace = async (req, res, next) => {
     description,
     address,
     location,
-    image:
-      "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/NYC_Empire_State_Building.jpg/640px-NYC_Empire_State_Building.jpg",
+    image: req.file.path,
     creator,
   });
 
@@ -141,6 +137,8 @@ const updatePlace = async (req, res, next) => {
 const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
 
+  const imagePath = place.image;
+
   let place;
   try {
     place = await Place.findByIdAndRemove(placeId);
@@ -151,7 +149,7 @@ const deletePlace = async (req, res, next) => {
   if (!place) {
     return next(new HttpError("could not find place", 404));
   }
-
+  fs.unlink(imagePath, (err) => {});
   res.status(200).json({ message: "Deleted place" });
 };
 /* -------------------------------------------------------------------------- */

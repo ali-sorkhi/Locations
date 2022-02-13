@@ -8,8 +8,8 @@ const placeSchema = new Schema({
   image: { type: String, required: true },
   address: { type: String, required: true },
   location: {
-    lat: { type: String, required: true },
-    lng: { type: String, required: true },
+    lat: { type: String },
+    lng: { type: String },
   },
   creator: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
 });
