@@ -57,7 +57,9 @@ const UpdatePlace = () => {
           },
           true
         );
-      } catch (error) {}
+      } catch (error) {
+        console.log(error);
+      }
     };
     fetchPlace();
   }, [sendRequest, placeId, setFormData]);
@@ -78,7 +80,9 @@ const UpdatePlace = () => {
         }
       );
       navigate("/" + auth.userId + "/places");
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   if (isLoading) {

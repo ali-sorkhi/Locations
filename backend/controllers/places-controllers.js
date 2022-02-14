@@ -120,6 +120,9 @@ const updatePlace = async (req, res, next) => {
     );
   }
 
+  if (place.creator.toString() !== req.userData.userId)
+    return next(new HttpError("Not Authorized to update this place", 401));
+
   place.title = title;
   place.description = description;
 
@@ -137,11 +140,9 @@ const updatePlace = async (req, res, next) => {
 const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
 
-  const imagePath = place.image;
-
   let place;
   try {
-    place = await Place.findByIdAndRemove(placeId);
+    place = await Place.findById(placeId).populate("creator");
   } catch (error) {
     return next(new HttpError("Removing place failed", 500));
   }
@@ -149,6 +150,20 @@ const deletePlace = async (req, res, next) => {
   if (!place) {
     return next(new HttpError("could not find place", 404));
   }
+
+  if (place.creator.id !== req.userData.userId)
+    return next(new HttpError("Not Authorized to delete this place", 401));
+
+  const imagePath = place.image;
+
+  try {
+    await place.remove();
+    place.creator.places.pull(place);
+    await place.creator.save();
+  } catch (error) {
+    return next(new HttpError("Removing place failed", 500));
+  }
+
   fs.unlink(imagePath, (err) => {});
   res.status(200).json({ message: "Deleted place" });
 };
