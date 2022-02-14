@@ -80,8 +80,10 @@ const Auth = () => {
             "Content-Type": "application/json",
           }
         );
-        auth.login(responseData.user.id);
-      } catch (error) {}
+        auth.login(responseData.userId, responseData.token);
+      } catch (error) {
+        console.log(error);
+      }
     } else {
       try {
         const formData = new FormData();
