@@ -47,7 +47,7 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-  .connect("mongodb://localhost:27017/Locations", {
+  .connect(`mongodb://localhost:27017/${process.env.DB_NAME}`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     family: 4,
